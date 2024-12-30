@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Hệ mặt trời lỏ</title>
+	<style type="text/css">
+		*{
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+	<script src="/lib/three.min.js"></script>
+	<script src="/lib/OrbitControls.js"></script>
+</head>
+<body>
+	<div id="scene"></div>
+	<script>
+		var scene = new THREE.Scene();
+		var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+		camera.position.set(0, 100, 230);
+		camera.lookAt(0,0,0);
+
+		var renderer = new THREE.WebGLRenderer({antialias: true});
+		renderer.setSize(window.innerWidth, window.innerHeight);
+
+		//var orbit = new THREE.OrbitControls(camera, renderer.domElement);
+		//orbit.update();
+
+		document.getElementById('scene').appendChild(renderer.domElement);
+
+		var textures = [
+				'/img/bg_stars.jpg',
+				'/img/sun.jpg',
+				'/img/mercury.jpg',
+				'/img/venus.jpg',
+				'/img/earth.jpg',
+				'/img/moon.jpg',
+				'/img/mars.jpg',
+				'/img/jupiter.jpg',
+				'/img/saturn.jpg',
+				'/img/saturn_ring.png',
+				'/img/uranus.jpg',
+				'/img/uranus_ring.png',
+				'/img/neptune.jpg'
+			];
+
+		var cubeTextureLoader = new THREE.CubeTextureLoader();
+		scene.background = cubeTextureLoader.load([
+			textures[0],
+			textures[0],
+			textures[0],
+			textures[0],
+			textures[0],
+			textures[0]
+		]);
+
+		var ambientLight = new THREE.AmbientLight(0x3D3D3D);
+		var textureLoader = new THREE.TextureLoader();
+
+		//Sun
+		var sunGeo = new THREE.SphereGeometry(16, 30, 30);
+		var sunMat = new THREE.MeshBasicMaterial({map: textureLoader.load(textures[1])});
+		var sun = new THREE.Mesh(sunGeo, sunMat);
+		scene.add(sun);
+
+		function createPlanet(radius, segment, texture, position, ring) {
+			var geometry = new THREE.SphereGeometry(radius, segment, segment);
+			var material = new THREE.MeshStandardMaterial({
+				map: textureLoader.load(texture)
+			});
+			var mesh = new THREE.Mesh(geometry, material);
+			mesh.position.x = position;
+			var obj = new THREE.Object3D();
+			obj.add(mesh);
+			if(ring){
+				var ringGeo = new THREE.RingGeometry(ring.innerRad, ring.outerRad, 32);
+				var ringMat = new THREE.MeshBasicMaterial({
+					map: textureLoader.load(ring.texture),
+					side: THREE.DoubleSide
+				});
+				var ringMesh = new THREE.Mesh(ringGeo, ringMat);
+				obj.add(ringMesh);
+				ringMesh.position.x = position;
+				ringMesh.rotation.x = -0.5 * Math.PI;
+			}
+			scene.add(obj);
+			return {mesh, obj};
+		}
+
+		//Planet
+		var mecury = createPlanet(3.2, 10, textures[2], 28);
+		var venus = createPlanet(5.8, 12, textures[3], 44);
+		var earth = createPlanet(6, 12, textures[4], 62);
+		var mars = createPlanet(4, 10, textures[6], 78);
+		var jupiter = createPlanet(12, 24, textures[7], 120);
+		var saturn = createPlanet(10, 20, textures[8], 158, {
+			innerRad: 10,
+			outerRad: 20,
+			texture: textures[9]
+		});
+		var uranus =createPlanet(7.5, 12, textures[10], 196, {
+			innerRad: 7,
+			outerRad: 12,
+			texture: textures[11]
+		});
+		var neptune = createPlanet(7, 12, textures[12], 220);
+
+		//Moon
+		var moonGeo = new THREE.SphereGeometry(1.5, 7, 7);
+		var moonMat = new THREE.MeshStandardMaterial({
+			map: textureLoader.load(textures[5])
+		});
+		var moon = new THREE.Mesh(moonGeo, moonMat);
+		moon.position.x = 10;
+		var moonObj = new THREE.Object3D();
+		moonObj.add(moon);
+		earth.mesh.add(moonObj);
+
+		var pointLight = new THREE.PointLight(0xFFFFFF, 20000, 500);
+		scene.add(pointLight);
+
+		var speed = 2;
+
+		var animate = function(){
+			sun.rotateY(speed*0.004); //X100
+			mecury.mesh.rotateY(speed*0.004);
+			venus.mesh.rotateY(speed*0.002);
+			earth.mesh.rotateY(speed*0.02);
+			mars.mesh.rotateY(speed*0.018);
+			jupiter.mesh.rotateY(speed*0.04);
+			saturn.mesh.rotateY(speed*0.038);
+			uranus.mesh.rotateY(speed*0.03);
+			neptune.mesh.rotateY(speed*0.032);
+
+			mecury.obj.rotateY(speed*0.04);
+			venus.obj.rotateY(speed*0.015);
+			earth.obj.rotateY(speed*0.01);
+			moonObj.rotateY(speed*0.05);
+			mars.obj.rotateY(speed*0.008);
+			jupiter.obj.rotateY(speed*0.002);
+			saturn.obj.rotateY(speed*0.0009);
+			uranus.obj.rotateY(speed*0.0004);
+			neptune.obj.rotateY(speed*0.0001);
+
+			renderer.render(scene, camera);
+		}
+
+		renderer.setAnimationLoop(animate);
+	</script>
+</body>
+</html>
